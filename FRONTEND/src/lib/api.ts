@@ -1,4 +1,6 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+// Safely grab the base URL and ensure it points to the /api routes
+const rawUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const BASE_URL = rawUrl.endsWith('/api') ? rawUrl : `${rawUrl}/api`;
 
 const api = {
   get: async (endpoint: string) => {
