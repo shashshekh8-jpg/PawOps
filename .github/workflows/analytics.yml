@@ -17,4 +17,4 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           pip install pandas scikit-learn psycopg2-binary
-          python analytics/adoption_prediction.py
+          python BACKEND/analytics/adoption_prediction.py
