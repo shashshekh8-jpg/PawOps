@@ -2,6 +2,7 @@ name: Nightly Intelligence Sync
 on:
   schedule:
     - cron: '0 0 * * *'
+  workflow_dispatch:
 jobs:
   update-ml-scores:
     runs-on: ubuntu-latest
@@ -17,4 +18,3 @@ jobs:
         run: |
           pip install pandas scikit-learn psycopg2-binary
           python analytics/adoption_prediction.py
-
