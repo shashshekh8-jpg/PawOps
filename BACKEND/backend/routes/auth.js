@@ -25,6 +25,7 @@ router.post('/login', async (req, res) => {
 
     res.json({ user: { name: user.name, role: user.role } });
   } catch (err) {
+    console.error("🚨 CRITICAL LOGIN CRASH:", err);
     res.status(500).json({ error: 'Auth fault' });
   }
 });
