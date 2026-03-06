@@ -14,7 +14,7 @@ router.get('/predict/:id', verifyToken, async (req, res) => {
   res.json(result.rows[0] || { probability: 0 });
 });
 
-// NEW: Fetch high-level summary metrics for the main Command Center
+// Summary metrics for the main Command Center
 router.get('/summary', verifyToken, async (req, res) => {
   try {
     const animalsResult = await req.pool.query('SELECT COUNT(*) FROM animals');
@@ -25,7 +25,6 @@ router.get('/summary', verifyToken, async (req, res) => {
       FROM donations
     `);
     
-    // Helper to format large INR numbers nicely (e.g., 1.5L, 85K)
     const formatINR = (val) => {
       const num = Number(val);
       if (num === 0) return "₹0";
@@ -43,6 +42,34 @@ router.get('/summary', verifyToken, async (req, res) => {
   } catch (err) {
     console.error("Summary API Error:", err);
     res.status(500).json({ error: 'Failed to fetch summary metrics' });
+  }
+});
+
+// NEW: Real Shelter Occupancy (Counts animals NOT adopted)
+router.get('/occupancy', verifyToken, async (req, res) => {
+  try {
+    const result = await req.pool.query("SELECT COUNT(*) FROM animals WHERE adoption_status != 'Adopted'");
+    res.json({ current: parseInt(result.rows[0].count), capacity: 200 }); // Assuming max capacity is 200
+  } catch (err) { 
+    res.status(500).json({ error: 'Failed to fetch occupancy' }); 
+  }
+});
+
+// NEW: Real Breed Analytics (Calculates avg days from rescue to adoption)
+router.get('/breeds', verifyToken, async (req, res) => {
+  try {
+    const result = await req.pool.query(`
+      SELECT a.breed as name, 
+             COALESCE(ROUND(AVG(EXTRACT(EPOCH FROM (ad.adoption_date - a.created_at))/86400)), 0) as days
+      FROM animals a
+      JOIN adoptions ad ON a.animal_id = ad.animal_id
+      GROUP BY a.breed
+      ORDER BY days ASC
+      LIMIT 4
+    `);
+    res.json(result.rows);
+  } catch (err) { 
+    res.status(500).json({ error: 'Failed to fetch breed stats' }); 
   }
 });
 
