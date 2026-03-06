@@ -1,11 +1,24 @@
 "use client";
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import GlassCard from '@/components/ui/GlassCard';
+import api from '@/lib/api';
 
 export default function ShelterOccupancy() {
-  const cap = 150;
-  const occ = 138;
-  const per = (occ / cap) * 100;
+  const [stats, setStats] = useState({ current: 0, capacity: 200 });
+
+  useEffect(() => {
+    const fetchOccupancy = async () => {
+      try {
+        const res = await api.get('/analytics/occupancy');
+        setStats(res);
+      } catch (err) { 
+        console.error(err); 
+      }
+    };
+    fetchOccupancy();
+  }, []);
+
+  const per = Math.min((stats.current / stats.capacity) * 100, 100);
 
   return (
     <GlassCard>
@@ -19,10 +32,9 @@ export default function ShelterOccupancy() {
         </div>
       </div>
       <div className="mt-4 flex justify-between text-[10px] font-bold text-gray-500 uppercase">
-        <span>Current: {occ}</span>
-        <span>Capacity: {cap}</span>
+        <span>Current: {stats.current}</span>
+        <span>Capacity: {stats.capacity}</span>
       </div>
     </GlassCard>
   );
 }
-
