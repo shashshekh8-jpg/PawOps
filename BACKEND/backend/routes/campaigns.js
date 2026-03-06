@@ -28,5 +28,15 @@ router.get('/funnel', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to retrieve campaign metrics' });
   }
 });
-
+// NEW: Get the top performing marketing drive
+router.get('/top', verifyToken, async (req, res) => {
+  try {
+    const result = await req.pool.query(`
+      SELECT name, adoptions_driven, 
+      ROUND(EXTRACT(EPOCH FROM (COALESCE(end_date, CURRENT_DATE) - start_date))/86400) as duration_days 
+      FROM campaigns ORDER BY adoptions_driven DESC LIMIT 1
+    `);
+    res.json(result.rows[0] || { name: "No Data", adoptions_driven: 0, duration_days: 0 });
+  } catch(err) { res.status(500).json({error: "Failed"}); }
+});
 module.exports = router;
