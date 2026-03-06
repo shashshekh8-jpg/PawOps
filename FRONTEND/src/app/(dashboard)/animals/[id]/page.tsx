@@ -16,16 +16,13 @@ export default function AnimalProfilePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Concurrent execution initiates both HTTP requests simultaneously [cite: 2, 3]
         const [animalRes, mlRes] = await Promise.all([
           api.get(`/animals/${params.id}`),
           api.get(`/analytics/predict/${params.id}`)
         ]);
         setAnimal(animalRes);
         setProbability(mlRes.probability);
-      } catch (err) {
-        console.error("Profile load failed", err);
-      }
+      } catch (err) { console.error("Profile load failed", err); }
     };
     if (params.id) fetchData();
   }, [params.id]);
@@ -61,11 +58,13 @@ export default function AnimalProfilePage() {
           <AdoptionGauge probability={probability || 0} />
           <GlassCard>
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Internal Notes</h3>
-            <p className="text-sm text-gray-300 italic">"Highly social interaction observed. Recommended for family placement."</p>
+            {/* NO MORE FAKE DATA - Displays the actual rescue notes */}
+            <p className="text-sm text-gray-300 italic">
+              "{animal.internal_notes || "No operational notes recorded for this rescue."}"
+            </p>
           </GlassCard>
         </div>
       </div>
     </div>
   );
 }
-
