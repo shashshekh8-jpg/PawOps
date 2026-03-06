@@ -72,5 +72,22 @@ router.get('/breeds', verifyToken, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch breed stats' }); 
   }
 });
+// NEW: Generate real data-driven strategic recommendations
+router.get('/recommendations', verifyToken, async (req, res) => {
+  try {
+    const breedRes = await req.pool.query("SELECT breed, COUNT(*) as count FROM animals WHERE adoption_status = 'Available' GROUP BY breed ORDER BY count DESC LIMIT 1");
+    const animalRes = await req.pool.query("SELECT name, breed, adoption_probability FROM animals WHERE adoption_status = 'Available' ORDER BY adoption_probability DESC LIMIT 1");
 
+    const recs = [];
+    if (animalRes.rows.length > 0 && animalRes.rows[0].adoption_probability > 0) {
+      recs.push(`• Promote ${animalRes.rows[0].name} (${animalRes.rows[0].breed}): Extremely high AI adoption probability (${animalRes.rows[0].adoption_probability}%) but still waiting in shelter.`);
+    }
+    if (breedRes.rows.length > 0) {
+      recs.push(`• Priority Placement: We currently have an influx of ${breedRes.rows[0].count} available ${breedRes.rows[0].breed}s. Consider a targeted social media push.`);
+    }
+    
+    if (recs.length === 0) recs.push("• Shelter occupancy dynamics are stable. Continue standard operating protocols.");
+    res.json(recs);
+  } catch (err) { res.status(500).json({ error: 'Failed' }); }
+});
 module.exports = router;
